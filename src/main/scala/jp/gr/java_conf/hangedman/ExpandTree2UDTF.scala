@@ -1,4 +1,4 @@
-package jp.gr.java_conf.hangedman.ExpandTree2UDTF
+package jp.gr.java_conf.hangedman
 
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDTF
 import org.apache.hadoop.hive.serde2.objectinspector.{PrimitiveObjectInspector,ObjectInspector,StructObjectInspector,ObjectInspectorFactory}

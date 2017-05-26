@@ -6,15 +6,17 @@ Create UDTF for Hive on Hadoop, I just refer the blog post: [RECURSION IN HIVE â
 
 ```
 $ sbt compile
-$ sbt package
+$ sbt assembly
 ```
 
 ## Testing
 
-* Add jar for your Hadoop ENV
+* Upload & add jar for your Hadoop ENV
 
 ```sh
 hive> add jar /path/to/hive-udtf.jar;
+Added [/home/hadoop/hive-udtf.jar] to class path
+Added resources: [/home/hadoop/hive-udtf.jar]
 ```
 
 * Prepare Hive tables, like following:
@@ -22,23 +24,23 @@ hive> add jar /path/to/hive-udtf.jar;
 ```sql
 
 CREATE TABLE t_product(
-  product string); 
+  product    STRING);
 
 CREATE TABLE t_state(
-  STATE string, 
-  next_state string); 
+  state      STRING,
+  next_state STRING);
 
 CREATE TABLE t_big_data(
-  product string,
-  STATE string, DATA string); 
-  
+  product    STRING,
+  state      STRING,
+  data       STRING);
+
 -- Create function with this class name
-CREATE FUNCTION expand_tree AS 'jp.gr.java_conf.hangedman.ExpandTree2UDTF'; 
+CREATE FUNCTION expand_tree AS 'jp.gr.java_conf.hangedman.ExpandTree2UDTF';
 
 -- Test
-INSERT ovewrite TABLE t_expand_state(state1, state2, lvl) 
 SELECT
-  expand_tree(STATE, next_state) 
+  expand_tree(state, next_state)
 FROM
-  t_state; 
+  t_state;
 ```
