@@ -16,17 +16,35 @@ class ExpandTree2UDTF extends GenericUDTF {
     ObjectInspectorFactory.getStandardStructObjectInspector(fieldNames, fieldOIs);
   }
 
+  // Give a set of arguments for the UDTF to process.
   def process(record: Array[Object]) {
     val id = inputOIs(0).getPrimitiveJavaObject(record(0)).asInstanceOf[String]
-    val parent = Option(inputOIs(1).getPrimitiveJavaObject(record(1)).asInstanceOf[String])
+
+    val parent: Option[String] = inputOIs(1).getPrimitiveJavaObject(record(1)).asInstanceOf[String] match {
+      case r if r.isEmpty => None
+      case r              => Some(r)
+    }
+
+    // "parent" is defined as Optional type, "Some" or "None"
+    // if parent is empty, that's should be "None"
     tree += ( id -> parent )
   }
 
+  // Called to notify the UDTF that there are no more rows to process.
+  // Clean up code or additional forward() calls can be made here.
   def close {
     val expandTree = collection.mutable.Map[String,List[String]]()
     def calculateAncestors(id: String): List[String] =
-      tree(id) match { case Some(parent) => id :: getAncestors(parent) ; case None => List(id) }
+      tree(id) match {
+        case Some(parent) => id :: getAncestors(parent)
+        case None => List(id)
+      }
     def getAncestors(id: String) = expandTree.getOrElseUpdate(id, calculateAncestors(id))
-    tree.keys.foreach{ id => getAncestors(id).zipWithIndex.foreach{ case(ancestor,level) => forward(Array(id, ancestor, level)) } }
+
+    tree.keys.foreach {
+      id => getAncestors(id).zipWithIndex.foreach {
+        case(ancestor,level) => forward(Array(id, ancestor, level))
+      }
+    }
   }
 }
