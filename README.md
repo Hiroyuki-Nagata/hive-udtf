@@ -11,13 +11,7 @@ $ sbt assembly
 
 ## Testing
 
-* Upload & add jar for your Hadoop ENV
-
-```sh
-hive> add jar /path/to/hive-udtf.jar;
-Added [/home/hadoop/hive-udtf.jar] to class path
-Added resources: [/home/hadoop/hive-udtf.jar]
-```
+* Please upload & add jar for your Hadoop ENV
 
 * Prepare Hive tables, like following:
 
@@ -36,15 +30,6 @@ CREATE TABLE t_big_data(
   state      STRING,
   data       STRING)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n';
-
--- Create function with this class name
-CREATE FUNCTION expand_tree AS 'jp.gr.java_conf.hangedman.ExpandTree2UDTF';
-
--- Test
-SELECT
-  expand_tree(state, next_state)
-FROM
-  t_state;
 ```
 
 * Prepare test data with CSV files, like following:
@@ -56,15 +41,10 @@ Cetuximab
 Dornase
 
 $ cat t_state.csv
-1,2
-2,3
-3,4
-4,4
-5,5
-6,6
-7,7
-8,8
-9,9
+S1,
+S2,S1
+S3,S1
+S4,S2
 
 $ hadoop fs -put t_product.csv
 $ hadoop fs -put t_state.csv
@@ -72,9 +52,39 @@ $ hadoop fs -put t_state.csv
 hive> LOAD DATA INPATH 't_product.csv' OVERWRITE INTO TABLE t_product;
 hive> LOAD DATA INPATH 't_state.csv' OVERWRITE INTO TABLE t_state;
 
+hive> SELECT * FROM t_state;
+OK
+S1
+S2      S1
+S3      S1
+S4      S2
+
+hive> add jar /path/to/hive-udtf.jar;
+Added [/home/hadoop/hive-udtf.jar] to class path
+Added resources: [/home/hadoop/hive-udtf.jar]
+
+-- Drop function if it exists
+hive> DROP FUNCTION expand_tree;
+-- Create function with this class name
+hive> CREATE FUNCTION expand_tree AS 'jp.gr.java_conf.hangedman.ExpandTree2UDTF';
+
 hive> SELECT
   expand_tree(state, next_state)
 FROM
   t_state;
+
+-- Hive will return following records
+hive> SELECT expand_tree(state, next_state) FROM t_state;
+OK
+S4      S4      0
+S4      S2      1
+S4      S1      2
+S1      S1      0
+S3      S3      0
+S3      S1      1
+S2      S2      0
+S2      S1      1
+
+-- You can limit records up to your use-case
 
 ```
