@@ -9,6 +9,13 @@ $ sbt compile
 $ sbt assembly
 ```
 
+## Known Issues
+
+* This user defined function may not work with Hive under 1.3.0
+  * [HIVE-11892](https://issues.apache.org/jira/browse/HIVE-11892) - UDTF run in local fetch task does not return rows forwarded during GenericUDTF.close()
+
+Please use Hive 1.3.0 or later...
+
 ## Testing
 
 * Please upload & add jar for your Hadoop ENV
