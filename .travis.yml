@@ -1,0 +1,21 @@
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+
+language: scala
+
+scala:
+  - 2.12.2
+
+jdk:
+  - oraclejdk8
+
+git:
+  submodules: false
+
+notifications:
+  email: true
+
+script:
+  - sbt -Dsbt.log.noformat=true compile
+  - sbt -Dsbt.log.noformat=true assembly

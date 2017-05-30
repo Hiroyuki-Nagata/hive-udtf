@@ -1,4 +1,4 @@
-# hive-udtf
+# hive-udtf [![Build Status](https://travis-ci.org/Hiroyuki-Nagata/hive-udtf.svg?branch=master)](https://travis-ci.org/Hiroyuki-Nagata/hive-udtf)
 
 Create UDTF for Hive on Hadoop, I just refer the blog post: [RECURSION IN HIVE – PART 1](https://www.pythian.com/blog/recursion-in-hive/)
 
@@ -23,40 +23,23 @@ Please use Hive 1.3.0 or later...
 * Prepare Hive tables, like following:
 
 ```sql
-CREATE TABLE t_product(
-  product    STRING)
-ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n';
-
 CREATE TABLE t_state(
   state      STRING,
   next_state STRING)
-ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n';
-
-CREATE TABLE t_big_data(
-  product    STRING,
-  state      STRING,
-  data       STRING)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n';
 ```
 
 * Prepare test data with CSV files, like following:
 
 ```
-$ cat t_product.csv
-Lepirudin
-Cetuximab
-Dornase
-
 $ cat t_state.csv
 S1,
 S2,S1
 S3,S1
 S4,S2
 
-$ hadoop fs -put t_product.csv
 $ hadoop fs -put t_state.csv
 
-hive> LOAD DATA INPATH 't_product.csv' OVERWRITE INTO TABLE t_product;
 hive> LOAD DATA INPATH 't_state.csv' OVERWRITE INTO TABLE t_state;
 
 hive> SELECT * FROM t_state;
@@ -72,13 +55,9 @@ Added resources: [/home/hadoop/hive-udtf.jar]
 
 -- Drop function if it exists
 hive> DROP FUNCTION expand_tree;
+
 -- Create function with this class name
 hive> CREATE FUNCTION expand_tree AS 'jp.gr.java_conf.hangedman.ExpandTree2UDTF';
-
-hive> SELECT
-  expand_tree(state, next_state)
-FROM
-  t_state;
 
 -- Hive will return following records
 hive> SELECT expand_tree(state, next_state) FROM t_state;
@@ -91,6 +70,9 @@ S3      S3      0
 S3      S1      1
 S2      S2      0
 S2      S1      1
+
+-- In case of INSERT INTO another TABLE
+hive> INSERT INTO TABLE xxx SELECT expand_tree(state, next_state) AS (x,y,z) FROM t_state;
 
 -- You can limit records up to your use-case
 
